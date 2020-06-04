@@ -254,11 +254,9 @@ class Context:
         have a unique value when cast as a string. Any time a predicate function
         is called it may be invoked with the string-cast version of the object
         in the domain. '''
-        # copy the array, make it an array of strings
-        stringified = []
         self.predicateAssumptions.clear()
-        for x in domain_array:
-            stringified.append(str(x))
+        # copy the array, make it an array of strings
+        stringified = [str(x) for x in domain_array]
         self.domain = stringified
         
     def forgetPredicateInvocations(self):
@@ -273,33 +271,34 @@ class Context:
         
     def _buildPredicateAssumptionsFromFunctions(self):
         # enumerate all values in the domain, adding predicateAssumptions
-        # if the value in the domain is true for the function
+            # if the value in the domain is true for the function
         for predName in self.predicateFunctions.keys():
             fn = self.predicateFunctions[predName]
-            
+
             # produce an array for every possible combination
             # of arguments in this arity, then execute this
             # function over that array, and if it is true,
             # then add the predicateAssumption
             n = len(self.domain)
             a = fn.arity
-            
+
             # total number of possible invocations: n^a
             numCombinations = n ** a
-            for i in range(0, numCombinations):
+            for i in range(numCombinations):
                 # i represents the ith argument pair
                 args = []
                 # now build the argument pair
                 argIndices = [0] * a
                 # convert to a radix of the domain length
                 _toDomainRadix(i, n, argIndices, 0)
-                for k in range(len(argIndices)):
-                    args.append(self.domain[argIndices[k]])
+                for argIndice in argIndices:
+                    args.append(self.domain[argIndice])
                 # the arguments are built, now see if we've computed their truth
                 # before
                 stringified = predName + "(" + ",".join(args) + ")"
-                if(not stringified in self.predicateAssumptions.keys() and
-                   fn.function(*args)):
+                if stringified not in self.predicateAssumptions.keys() and fn.function(
+                    *args
+                ):
                     self.assumePredicate(stringified)
     
     def printTruthTable(self, sentence, separator="\t"):
@@ -701,9 +700,9 @@ class Predicate:
         NB: regardless of explicitly defined predicate functions, this Predicate object
         has a static truth, that is set by the validation function.
         '''
-        if(self.argList is not None):
+        if (self.argList is not None):
             for term in self.argList:
-                if(not term in self.domain):
+                if term not in self.domain:
                     raise LogicError("WARNING: Term '" + str(term) + "' not in domain " + str(self.domain))
         return self.truth
     
@@ -727,7 +726,8 @@ class Negation(UnaryOp):
         self.expression = expr
         
     def isTrue(self):
-        return not self.expression.isTrue();
+        return not self.expression.isTrue();
+
     def __str__(self):
         return "{not " + str(self.expression) + "}"
 
@@ -789,9 +789,7 @@ class Implication (BinaryOp):
         self.right = expr2;
     
     def isTrue(self):
-        if(self.left.isTrue() and (not self.right.isTrue())):
-            return False
-        return True
+        return bool(not self.left.isTrue() or self.right.isTrue())
     
     def __str__(self):
         return "{" + str(self.left) + " implies " + str(self.right) + "}"

@@ -204,7 +204,7 @@ def quicksort(list, start, end):
 def shuffle(list):
     import random
     numSwaps = len(list)
-    for i in range(numSwaps):
+    for _ in range(numSwaps):
         # perform a swap
         idx1 = random.randrange(0,len(list))
         idx2 = random.randrange(0,len(list))
